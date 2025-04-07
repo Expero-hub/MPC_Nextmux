@@ -14,6 +14,8 @@ class CollectionController extends Controller
      */
     public function index()
     {
+        return response()->json(Collection::all());
+
         //
     }
 
@@ -72,6 +74,9 @@ class CollectionController extends Controller
      */
     public function show(string $id)
     {
+        $Collections = Collection::findOrFail($id);
+        return response()->json($Collections);
+
         //
     }
 
@@ -80,6 +85,16 @@ class CollectionController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $request->validate([
+            'nom' => 'sometimes|string|max:255',
+            
+        ]);
+
+        $Collections = Collection::findOrFail($id);
+        $Collections->update($request->all());
+
+        return response()->json($Collections, 'Mis a jour effectue');
+
         //
     }
 
@@ -88,6 +103,13 @@ class CollectionController extends Controller
      */
     public function destroy(string $id)
     {
+        $Collections = Collection::findOrFail($id);
+        $Collections->delete();
+
+        return response()->json(['message' => 'Collections supprimée avec succès'], 204);
+
         //
     }
+
 }
+

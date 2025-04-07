@@ -35,12 +35,14 @@ class DocumentController extends Controller
            $request->validate([
                'nom' => 'required|string|max:255',
                'collection_id' => 'required|string|max:255',
-               'photo' => 'required|string|max:255',
+               'photo' => 'required|file|mimes:jpg,jpeg|max:10240',
                
        
            ]);
+           
 
 
+           $path = $request->photo('photo')->store('documents', 'public');
 
            //  Création de la collection
            $collection = Document::create([
@@ -48,7 +50,7 @@ class DocumentController extends Controller
                'user_id' => $user->id, // Récupérer l'utilisateur connecté
                'collection_id' => $request->collection_id,
                'nom' => $request->nom,
-               'photo' => $request->photo,
+               'photo' => $path,
        
            ]);
 
@@ -92,4 +94,17 @@ class DocumentController extends Controller
     {
         //
     }
+    public function rename($id, Request $request)
+    {
+        $document = Document::findOrFail($id);
+
+        $request->validate([
+            'nom' => 'required|string|max:255',
+        ]);
+
+        $document->update(['nom' => $request->nom]);
+
+        return response()->json(['message' => 'Nom du document mis à jour', 'document' => $document]);
+    }
+
 }
