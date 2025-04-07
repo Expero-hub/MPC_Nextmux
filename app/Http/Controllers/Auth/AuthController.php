@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Auth;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -41,7 +42,7 @@ class AuthController extends Controller
 
         // Retourner les informations de l'utilisateur
         return response()->json([
-            'NomUtiliateur' => $user->lastname,
+            'Nom Utiliateur' => $user->lastname,
             'Contact' => $user->telephone,
             'Adresse_Email' => $user->email,
             'message' => 'Utilisateur créé avec succès!'
