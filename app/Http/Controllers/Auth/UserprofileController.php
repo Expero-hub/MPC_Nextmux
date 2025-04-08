@@ -22,7 +22,7 @@ class UserprofileController extends Controller
             "lastname" =>$user->lastname,
             "firstname" =>$user->firstname,
             "telephone" =>$user->telephone,
-            "photo" =>$user->photo,
+            "photo_url" => asset($user->photo),
             "email" => $user->email]);
     }
 

@@ -43,6 +43,7 @@ Route::middleware('auth:api')->group(function () {
     Route::prefix('documents')->group(function () {
         Route::post('/ajouter', [DocumentController::class, 'store']);
         Route::get('/afficher', [DocumentController::class, 'index']);
+        Route::get('/afficherCollection/{id}', [DocumentController::class, 'afficherCollection']);
         Route::get('/corbeille', [DocumentController::class, 'corbeille']);
         Route::put('/supprimer/{id}', [DocumentController::class, 'placerCorbeille']);
         Route::patch('/restaurer/{id}', [DocumentController::class, 'restaurer']);

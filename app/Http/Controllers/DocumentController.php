@@ -37,6 +37,33 @@ class DocumentController extends Controller
     }
     }
 
+public function afficherCollection($collectionId){
+    try { 
+        $user = Auth::user();
+            // Récupérer tous les documents de la collection donnée appartenant à l'utilisateur
+            $documents = Document::where('collection_id', $collectionId)
+                                    ->where('user_id', $user->id)
+                                    ->where('etat', 'actif')
+                                    ->get();
+
+        if ($documents->isEmpty()) {
+            return response()->json(['message' => 'Aucun document trouvé dans cette collection.'], 404);
+        }
+
+        return response()->json([
+            'collection_id' => $collectionId,
+            'documents' => $documents
+        ]);
+        } catch (\Exception $e) {
+        return response()->json([
+            'message' => 'Erreur lors de la récupération des documents.',
+            'erreur' => $e->getMessage()
+        ], 500);
+    }
+
+}
+
+
     //affichage de la corbeille 
     public function corbeille()
 {
@@ -72,10 +99,13 @@ class DocumentController extends Controller
            $request->validate([
                'nom' => 'required|string|max:255',
                'collection_id' => 'required|string|max:255',
-               'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+
+               'photo' => 'required|file|mimes:jpg,jpeg|max:10240',
+
                
        
            ]);
+           
 
            //Traiter l'image
 
@@ -96,22 +126,22 @@ class DocumentController extends Controller
             ], 422);
            }
 
+           
 
 
            //  Création du document
-           $collection = Document::create([
+           $document = Document::create([
                //'id' => Str::uuid(), 
                'user_id' => $user->id, // Récupérer l'utilisateur connecté
                'collection_id' => $request->collection_id,
                'nom' => $request->nom,
                'photo' => 'storage/' . $path,
-       
            ]);
 
            //  Retourner une réponse JSON
            return response()->json([
                'message' => 'Document créé avec succès',
-               'collection' => $collection
+               'document' => $document
                ], 201);
        }
        catch(\Exception $e){
@@ -285,4 +315,17 @@ public function restaurer($id)
             ], 404);
         }
     }
+    public function rename($id, Request $request)
+    {
+        $document = Document::findOrFail($id);
+
+        $request->validate([
+            'nom' => 'required|string|max:255',
+        ]);
+
+        $document->update(['nom' => $request->nom]);
+
+        return response()->json(['message' => 'Nom du document mis à jour', 'document' => $document]);
+    }
+
 }

@@ -21,7 +21,7 @@ class AuthController extends Controller
             'lastname' => 'required|string|max:255',
             'firstname' => 'required|string|max:255',
             'telephone' => 'required|string|max:255',
-            'photo' => 'required|string|max:255',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
         ]);
@@ -30,12 +30,33 @@ class AuthController extends Controller
             return response()->json($validator->errors(), 400);
         }
 
+        //Traiter l'image
+
+        if($request->hasFile('photo')){
+            //Récupération du fichier
+            $file = $request->file('photo');
+            //Générer un nom unique pour l'image
+            $imageName = time() . '_' .$file->getClientOriginalName();
+
+            // Stockage dans storage/app/public/documents
+
+            $path = $file->storeAs('documents', $imageName, 'public');
+
+           }
+           else{
+            return response()->json([
+                'message' => 'fichier introuvable'
+            ], 422);
+           }
+
+          
+
         // Création de l'utilisateur
         $user = User::create([
             'lastname' => $request->lastname,
             'firstname' => $request->firstname,
             'telephone' => $request->telephone,
-            'photo' => $request->photo,
+            'photo' => 'storage/' . $path,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
@@ -43,6 +64,7 @@ class AuthController extends Controller
         // Retourner les informations de l'utilisateur
         return response()->json([
             'NomUtiliateur' => $user->lastname,
+            'photo' => $user->photo,
             'Contact' => $user->telephone,
             'Adresse_Email' => $user->email,
             'message' => 'Utilisateur créé avec succès!'

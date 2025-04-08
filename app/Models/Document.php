@@ -29,5 +29,10 @@ class Document extends Model
         'etat',
         'authentification',
     ];
+    public function collection() { 
+        return $this->belongsTo(Collection::class); 
+    }
+
+
 
 }
