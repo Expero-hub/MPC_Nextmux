@@ -20,6 +20,7 @@ return new class extends Migration
             $table->enum('etat', ['actif', 'corbeille'])->default('actif');
             $table->enum('authentification', ['neutre', 'authentifié', 'encours'])->default('neutre');
             $table->timestamps();
+            
 
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->foreign('collection_id')->references('id')->on('collections')->onDelete('cascade');

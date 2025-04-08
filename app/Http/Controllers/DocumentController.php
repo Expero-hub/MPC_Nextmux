@@ -47,7 +47,7 @@ class DocumentController extends Controller
                          ->get();
 
     return response()->json([
-        'status' => 'success',
+       
         'title' => 'CORBEILLE',
         'documents' => $documents,
     ]);
@@ -212,6 +212,8 @@ class DocumentController extends Controller
 
     $document->update([
         'etat' => 'corbeille',
+        'deleted_at' => now(),
+        
        
         ]);
 
