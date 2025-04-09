@@ -126,8 +126,6 @@ public function afficherCollection($collectionId){
             ], 422);
            }
 
-           
-
 
            //  Création du document
            $document = Document::create([
@@ -135,7 +133,9 @@ public function afficherCollection($collectionId){
                'user_id' => $user->id, // Récupérer l'utilisateur connecté
                'collection_id' => $request->collection_id,
                'nom' => $request->nom,
+
                'photo' => 'storage/' . $path,
+
            ]);
 
            //  Retourner une réponse JSON

@@ -63,6 +63,7 @@ class AuthController extends Controller
 
         // Retourner les informations de l'utilisateur
         return response()->json([
+
             'NomUtiliateur' => $user->lastname,
             'photo' => $user->photo,
             'Contact' => $user->telephone,
