@@ -37,21 +37,52 @@ class DocumentController extends Controller
     }
     }
 
+    public function afficherCollection($collectionId){
+        try { 
+            $user = Auth::user();
+                // Récupérer tous les documents de la collection donnée appartenant à l'utilisateur
+                $documents = Document::where('collection_id', $collectionId)
+                                        ->where('user_id', $user->id)
+                                        ->where('etat', 'actif')
+                                        ->get();
+
+            if ($documents->isEmpty()) {
+                return response()->json(['message' => 'Aucun document trouvé dans cette collection.'], 404);
+            }
+
+            return response()->json([
+                'collection_id' => $collectionId,
+                'documents' => $documents
+            ]);
+            } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Erreur lors de la récupération des documents.',
+                'erreur' => $e->getMessage()
+            ], 500);
+        }
+
+    }
+
+
     //affichage de la corbeille 
     public function corbeille()
-{
-    $user = Auth::user();
-        $documents = Document::where('user_id', $user->id)
-                         ->where('etat', 'corbeille')
-                         ->latest() 
-                         ->get();
+    {
+        $user = Auth::user();
+            $documents = Document::where('user_id', $user->id)
+                            ->where('etat', 'corbeille')
+                            ->latest() 
+                            ->get();
 
-    return response()->json([
-       
-        'title' => 'CORBEILLE',
-        'documents' => $documents,
-    ]);
-}
+        if ($documents->isEmpty()) {
+                return response()->json(['message' => 'Aucun document placé dans la corbeille.'], 404);
+            }
+
+        return response()->json([
+        
+            'title' => 'CORBEILLE',
+            'documents' => $documents,
+        ]);
+    }
 
 
     /**
@@ -86,7 +117,7 @@ class DocumentController extends Controller
             //Récupération du fichier
             $file = $request->file('photo');
             //Générer un nom unique pour l'image
-            $imageName = time() . '_' .$file->getClientOriginalName();
+            $imageName = $file->getClientOriginalName();
 
             // Stockage dans storage/app/public/documents
 
@@ -99,11 +130,11 @@ class DocumentController extends Controller
             ], 422);
            }
 
-           $path = $request->photo('photo')->store('documents', 'public');
+
 
 
            //  Création du document
-           $collection = Document::create([
+           $document = Document::create([
                //'id' => Str::uuid(), 
                'user_id' => $user->id, // Récupérer l'utilisateur connecté
                'collection_id' => $request->collection_id,
@@ -111,13 +142,12 @@ class DocumentController extends Controller
 
                'photo' => 'storage/' . $path,
 
-       
            ]);
 
            //  Retourner une réponse JSON
            return response()->json([
                'message' => 'Document créé avec succès',
-               'collection' => $collection
+               'document' => $document
                ], 201);
        }
        catch(\Exception $e){
@@ -145,26 +175,50 @@ class DocumentController extends Controller
     public function update(Request $request, string $id)
     {
         try{
-
+            
             // Vérifier si l'utilisateur est authentifié
            $user = Auth::user();
            if (!$user) {
                return response()->json(['message' => 'Utilisateur non authentifié'], 401);
            }
-
    
             //  Validation des données
            $request->validate([
                'nom' => 'required|string|max:255',
+               'photo' => 'nullable|file|mimes:jpg,jpeg,png|max:10240',
                
            ]);
-
+          
 
 
            //  Renomer
            $document = Document::findOrFail($id);
-           $document->update($request->all());
-               
+
+           if ($document->photo && file_exists(public_path($document->photo))) {
+            unlink(public_path($document->photo));
+        }
+
+        $document->nom = $request->input('nom');
+
+        if($request->hasFile('photo')){
+            //Récupération du fichier
+            $file = $request->file('photo');
+            //Générer un nom unique pour l'image
+            $imageName = $file->getClientOriginalName();
+
+            // Stockage dans storage/app/public/documents
+
+            $path = $file->storeAs('documents', $imageName, 'public');
+
+            $document->photo = 'storage/'.$path;
+
+           }
+          
+
+           // Mise à jour du nom
+            
+            $document->save();
+                
                
            //  Retourner une réponse JSON
            return response()->json([
@@ -212,7 +266,7 @@ class DocumentController extends Controller
 
     $document->update([
         'etat' => 'corbeille',
-        'deleted_at' => now(),
+        'archived_at' => now(),
         
        
         ]);
@@ -243,6 +297,7 @@ public function restaurer($id)
 
     $document->update([
         'etat' => 'actif',
+        'archived_at' => null,
         
     ]);
 

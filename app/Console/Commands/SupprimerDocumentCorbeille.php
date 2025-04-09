@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\Document; 
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class SupprimerDocumentCorbeille extends Command
 {
@@ -27,9 +28,10 @@ class SupprimerDocumentCorbeille extends Command
      */
     public function handle()
     {
-        $limite = Carbon::now()->subMinutes(5);
+        
+        $limite = Carbon::now()->subDays(5);
         $documents = Document::where('etat', 'corbeille')
-                            ->where('deleted_at', '<=', $limite)
+                            ->where('archived_at', '<=', $limite)
                             ->get();
 
         foreach ($documents as $doc) {
@@ -42,5 +44,7 @@ class SupprimerDocumentCorbeille extends Command
         }
 
         $this->info("{$documents->count()} documents supprimés définitivement.");
+       
+
     }
 }

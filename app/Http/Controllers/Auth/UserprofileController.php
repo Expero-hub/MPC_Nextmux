@@ -22,28 +22,50 @@ class UserprofileController extends Controller
             "lastname" =>$user->lastname,
             "firstname" =>$user->firstname,
             "telephone" =>$user->telephone,
-            "photo" =>$user->photo,
+            "photo_url" => asset($user->photo),
             "email" => $user->email]);
     }
 
     public function renameProfile(Request $request){
         try{
             $request->validate([
-                'lastname'   => 'required|string|max:255',
-                'firstname'  => 'required|string|max:255',
+                'lastname'   => 'nullable|string|max:255',
+                'firstname'  => 'nullable|string|max:255',
                 'telephone'  => 'nullable|string|max:20',
-                'photo'      => 'nullable|string', 
-                'email'      => 'required|email|unique:users,email,' . Auth::id(),
+                'photo'      => 'nullable|file|mimes:jpg,jpeg,png|max:10240',
+                'email'      => 'nullable|email|unique:users,email,' . Auth::id(),
                 'password'   => 'nullable|string|min:6',
             ]);
         
             $user = User::findOrFail(Auth::id()); 
-        
-            $data = $request->only(['lastname', 'firstname', 'telephone', 'photo', 'email']);
+
+            $data = $request->only(['lastname', 'firstname', 'telephone',  'email']);
         
             if ($request->filled('password')) {
                 $data['password'] = Hash::make($request->password);
             }
+
+
+            //Traiter l'image
+            if($request->hasFile('photo')){
+                //Récupération du fichier
+                $file = $request->file('photo');
+                //Générer un nom unique pour l'image
+                $imageName = $file->getClientOriginalName();
+
+                // Stockage dans storage/app/public/images
+                if($user->photo && file_exists(public_path($user->photo))){
+                    unlink(public_path($user->photo));
+                }
+
+                $path = $file->storeAs('images', $imageName, 'public');
+
+                $data['photo'] = 'storage/' . $path;
+
+            }
+
+           
+            logger($data);
         
             $user->update($data);
         

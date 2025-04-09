@@ -10,5 +10,5 @@ Artisan::command('inspire', function () {
 
 
 return function (Schedule $schedule) { 
-    $schedule->command('documents:supprimer-document-corbeille')->everyFifteenMinutes();
+    $schedule->command('documents:supprimer-document-corbeille')->daily();
  };

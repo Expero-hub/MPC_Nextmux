@@ -21,28 +21,56 @@ class AuthController extends Controller
             'lastname' => 'required|string|max:255',
             'firstname' => 'required|string|max:255',
             'telephone' => 'required|string|max:255',
-            'photo' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
+            'photo' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:6|confirmed',
         ]);
 
         if ($validator->fails()) {
             return response()->json($validator->errors(), 400);
         }
+        if (User::where('email', $request->email)->exists()) {
+            return response()->json(['message' => 'Cet utilisateur existe déjà.'], 409);
+        }
+        
+
+        //Traiter l'image
+
+        if($request->hasFile('photo')){
+            //Récupération du fichier
+            $file = $request->file('photo');
+            //Générer un nom unique pour l'image
+            $imageName = $file->getClientOriginalName();
+
+            // Stockage dans storage/app/public/documents
+
+            $path = $file->storeAs('images', $imageName, 'public');
+
+           }
+           else{
+            return response()->json([
+                'message' => 'fichier introuvable'
+            ], 422);
+           }
+
+          
 
         // Création de l'utilisateur
         $user = User::create([
             'lastname' => $request->lastname,
             'firstname' => $request->firstname,
             'telephone' => $request->telephone,
-            'photo' => $request->photo,
+            'photo' => 'storage/' . $path,
             'email' => $request->email,
             'password' => Hash::make($request->password),
         ]);
 
         // Retourner les informations de l'utilisateur
         return response()->json([
-            'Nom Utiliateur' => $user->lastname,
+
+            'NomUtiliateur' => $user->lastname,
+            'photo' => $user->photo,
+
             'Contact' => $user->telephone,
             'Adresse_Email' => $user->email,
             'message' => 'Utilisateur créé avec succès!'

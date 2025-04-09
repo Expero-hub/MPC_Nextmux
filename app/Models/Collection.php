@@ -30,5 +30,8 @@ class Collection extends Model
     {
         return $this->belongsTo(User::class);
     }
+    public function documents() {
+         return $this->hasMany(Document::class);
+    }
 
 }

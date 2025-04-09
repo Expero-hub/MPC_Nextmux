@@ -15,7 +15,7 @@ class Document extends Model
     {
         static::creating(function ($user) {
             $user->id = (string) Str::uuid();  // Génère un UUID lors de la création de l'utilisateur
-            logger($user);
+           
         });
         
     }
@@ -28,6 +28,12 @@ class Document extends Model
         'photo',
         'etat',
         'authentification',
+        'archived_at',
     ];
+    public function collection() { 
+        return $this->belongsTo(Collection::class); 
+    }
+
+
 
 }
